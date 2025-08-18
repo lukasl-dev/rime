@@ -1,4 +1,5 @@
 use std::io::Error;
+use std::process::Command;
 
 use rust_mcp_sdk::schema::{CallToolResult, TextContent, schema_utils::CallToolError};
 use rust_mcp_sdk::{
@@ -26,7 +27,7 @@ pub struct PackagesSearchTool {
 impl PackagesSearchTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         // Run: nix search --json <installable> <regex>
-        let output = std::process::Command::new("nix")
+        let output = Command::new("nix")
             .args([
                 "search",
                 "--json",
@@ -77,7 +78,7 @@ pub struct PackagesWhyDepends {
 impl PackagesWhyDepends {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         // Run: nix why-depends --all <package> <dependency>
-        let output = std::process::Command::new("nix")
+        let output = Command::new("nix")
             .args([
                 "why-depends",
                 "--all",
@@ -104,21 +105,21 @@ impl PackagesWhyDepends {
 }
 
 #[mcp_tool(
-    name = "flake.show",
+    name = "flakes.show",
     description = "Show the outputs provided by a given flake."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
-pub struct FlakeShowTool {
+pub struct FlakesShowTool {
     /// The flake to show outputs for.
     ///
     /// Examples: "github:neuro-soup/evochi", "/path/to/nixos/flake/dir", etc.
     flake: String,
 }
 
-impl FlakeShowTool {
+impl FlakesShowTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         // Run: nix flake show --json <flake>
-        let output = std::process::Command::new("nix")
+        let output = Command::new("nix")
             .args(["flake", "show", "--json", self.flake.as_str()])
             .output()
             .map_err(CallToolError::new)?;
@@ -144,7 +145,38 @@ impl FlakeShowTool {
     }
 }
 
+#[mcp_tool(
+    name = "wiki.get_page",
+    description = "Read the page from NixOS's wiki."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct WikiGetPageTool {
+    /// The name of the page to read from the NixOS wiki.
+    ///
+    /// Examples: "Docker", "Go", "Rust", etc.
+    page: String,
+}
+
+impl WikiGetPageTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        // GET https://nixos.wiki/index.php?title=<page>&action=raw
+        let resp = ureq::get("https://nixos.wiki/index.php")
+            .query("title", &self.page)
+            .query("action", "raw")
+            .call()
+            .map_err(CallToolError::new)?;
+
+        let body = resp.into_string().map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(body)]))
+    }
+}
+
 tool_box!(
     RimTools,
-    [PackagesSearchTool, PackagesWhyDepends, FlakeShowTool]
+    [
+        PackagesSearchTool,
+        PackagesWhyDepends,
+        FlakesShowTool,
+        WikiGetPageTool
+    ]
 );

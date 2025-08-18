@@ -34,7 +34,8 @@ impl ServerHandler for RimeServerHandler {
         match tool_params {
             RimTools::PackagesSearchTool(tool) => tool.call_tool(),
             RimTools::PackagesWhyDepends(tool) => tool.call_tool(),
-            RimTools::FlakeShowTool(tool) => tool.call_tool(),
+            RimTools::FlakesShowTool(tool) => tool.call_tool(),
+            RimTools::WikiGetPageTool(tool) => tool.call_tool(),
         }
     }
 }
