@@ -5,7 +5,7 @@ use rust_mcp_sdk::schema::{
 };
 use rust_mcp_sdk::{McpServer, mcp_server::ServerHandler};
 
-use crate::tools::RimTools;
+use crate::tools::RimeTools;
 
 pub struct RimeServerHandler;
 
@@ -19,7 +19,7 @@ impl ServerHandler for RimeServerHandler {
         Ok(ListToolsResult {
             meta: None,
             next_cursor: None,
-            tools: RimTools::tools(),
+            tools: RimeTools::tools(),
         })
     }
 
@@ -28,16 +28,16 @@ impl ServerHandler for RimeServerHandler {
         request: CallToolRequest,
         _runtime: &dyn McpServer,
     ) -> std::result::Result<CallToolResult, CallToolError> {
-        let tool_params: RimTools =
-            RimTools::try_from(request.params).map_err(CallToolError::new)?;
+        let tool_params: RimeTools =
+            RimeTools::try_from(request.params).map_err(CallToolError::new)?;
 
         match tool_params {
-            RimTools::PackagesSearchTool(tool) => tool.call_tool(),
-            RimTools::PackagesWhyDepends(tool) => tool.call_tool(),
-            RimTools::FlakesShowTool(tool) => tool.call_tool(),
-            RimTools::WikiSearchTool(tool) => tool.call_tool(),
-            RimTools::WikiGetPageTool(tool) => tool.call_tool(),
-            RimTools::ManixSearchTool(tool) => tool.call_tool(),
+            RimeTools::PackagesSearchTool(tool) => tool.call_tool(),
+            RimeTools::PackagesWhyDepends(tool) => tool.call_tool(),
+            RimeTools::FlakesShowTool(tool) => tool.call_tool(),
+            RimeTools::WikiSearchTool(tool) => tool.call_tool(),
+            RimeTools::WikiGetPageTool(tool) => tool.call_tool(),
+            RimeTools::ManixSearchTool(tool) => tool.call_tool(),
         }
     }
 }

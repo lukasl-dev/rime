@@ -2,6 +2,7 @@ mod handler;
 mod tools;
 
 use handler::RimeServerHandler;
+use rust_mcp_sdk::mcp_server::{HyperServerOptions, hyper_server};
 use rust_mcp_sdk::schema::{
     Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
     ServerCapabilitiesTools,
@@ -32,6 +33,16 @@ async fn main() -> SdkResult<()> {
 
     let transport = StdioTransport::new(TransportOptions::default())?;
     let handler = RimeServerHandler {};
+
+    // let server = hyper_server::create_server(
+    //     server_details,
+    //     handler,
+    //     HyperServerOptions {
+    //         host: "127.0.0.1".to_string(),
+    //         sse_support: false,
+    //         ..Default::default()
+    //     },
+    // );
 
     let server: ServerRuntime = server_runtime::create_server(server_details, transport, handler);
     server.start().await

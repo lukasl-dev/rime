@@ -246,7 +246,7 @@ impl ManixSearchTool {
 }
 
 tool_box!(
-    RimTools,
+    RimeTools,
     [
         PackagesSearchTool,
         PackagesWhyDepends,
