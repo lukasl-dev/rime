@@ -146,6 +146,37 @@ impl FlakesShowTool {
 }
 
 #[mcp_tool(
+    name = "wiki.search",
+    description = "Search the NixOS wiki for pages matching a given regex."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct WikiSearchTool {
+    /// The name of the page to read from the NixOS wiki.
+    ///
+    /// Examples: "Docker", "Go", "Rust", etc.
+    ///
+    /// The resulting `title` can be passed as `name_of_the_found_page` to the
+    /// `wiki.get_page` tool to read the page content.
+    query: String,
+}
+
+impl WikiSearchTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        // GET https://nixos.wiki/api.php?action=query&list=search&srsearch=<query>&format=json
+        let resp = ureq::get("https://nixos.wiki/api.php")
+            .query("action", "query")
+            .query("list", "search")
+            .query("srsearch", &self.query)
+            .query("format", "json")
+            .call()
+            .map_err(CallToolError::new)?;
+
+        let body = resp.into_string().map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(body)]))
+    }
+}
+
+#[mcp_tool(
     name = "wiki.get_page",
     description = "Read the page from NixOS's wiki."
 )]
@@ -177,6 +208,7 @@ tool_box!(
         PackagesSearchTool,
         PackagesWhyDepends,
         FlakesShowTool,
+        WikiSearchTool,
         WikiGetPageTool
     ]
 );
