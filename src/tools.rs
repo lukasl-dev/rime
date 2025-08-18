@@ -8,7 +8,7 @@ use rust_mcp_sdk::{
 };
 
 #[mcp_tool(
-    name = "packages.search",
+    name = "packages_search",
     description = "Searches for packages in a given installable, such as `nixpkgs`."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
@@ -59,7 +59,7 @@ impl PackagesSearchTool {
 }
 
 #[mcp_tool(
-    name = "packages.why_depends",
+    name = "packages_why_depends",
     description = "Show why a package has another package in its closure."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
@@ -105,7 +105,7 @@ impl PackagesWhyDepends {
 }
 
 #[mcp_tool(
-    name = "flakes.show",
+    name = "flakes_show",
     description = "Show the outputs provided by a given flake."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
@@ -146,7 +146,7 @@ impl FlakesShowTool {
 }
 
 #[mcp_tool(
-    name = "wiki.search",
+    name = "wiki_search",
     description = "Search the NixOS wiki for pages matching a given regex."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
@@ -156,7 +156,7 @@ pub struct WikiSearchTool {
     /// Examples: "Docker", "Go", "Rust", etc.
     ///
     /// The resulting `title` can be passed as `name_of_the_found_page` to the
-    /// `wiki.get_page` tool to read the page content.
+    /// `wiki_get_page` tool to read the page content.
     query: String,
 }
 
@@ -177,7 +177,7 @@ impl WikiSearchTool {
 }
 
 #[mcp_tool(
-    name = "wiki.get_page",
+    name = "wiki_get_page",
     description = "Read the page from NixOS's wiki."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
