@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  inputs,
-  ...
-}:
+{ pkgs, ... }:
 
 {
   # https://devenv.sh/basics/
@@ -14,7 +8,11 @@
   packages = [ pkgs.git ];
 
   # https://devenv.sh/languages/
-  languages.rust.enable = true;
+  languages.rust = {
+    enable = true;
+    channel = "nightly";
+    targets = [ "x86_64-unknown-linux-musl" "x86_64-unknown-linux-gnu" ];
+  };
 
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
