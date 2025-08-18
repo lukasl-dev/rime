@@ -202,6 +202,49 @@ impl WikiGetPageTool {
     }
 }
 
+#[mcp_tool(
+    name = "manix_search",
+    description = "Search the documentation for a given query using manix."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct ManixSearchTool {
+    /// The query to search for in the documentation.
+    ///
+    /// Examples: "programs.git", "services.nginx", etc.
+    query: String,
+}
+
+impl ManixSearchTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        // Run: nix --extra-experimental-features 'nix-command flakes' run nixpkgs#manix -- <query>
+        let output = Command::new("nix")
+            .args([
+                "--extra-experimental-features",
+                "nix-command flakes",
+                "run",
+                "nixpkgs#manix",
+                "--",
+                self.query.as_str(),
+            ])
+            .output()
+            .map_err(CallToolError::new)?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let err = Error::other(format!(
+                r#"manix failed (status: {}): {}"#,
+                output.status, stderr
+            ));
+            return Err(CallToolError::new(err));
+        }
+
+        let stdout = String::from_utf8(output.stdout).map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            stdout,
+        )]))
+    }
+}
+
 tool_box!(
     RimTools,
     [
@@ -209,6 +252,7 @@ tool_box!(
         PackagesWhyDepends,
         FlakesShowTool,
         WikiSearchTool,
-        WikiGetPageTool
+        WikiGetPageTool,
+        ManixSearchTool,
     ]
 );

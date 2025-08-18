@@ -37,6 +37,7 @@ impl ServerHandler for RimeServerHandler {
             RimTools::FlakesShowTool(tool) => tool.call_tool(),
             RimTools::WikiSearchTool(tool) => tool.call_tool(),
             RimTools::WikiGetPageTool(tool) => tool.call_tool(),
+            RimTools::ManixSearchTool(tool) => tool.call_tool(),
         }
     }
 }
