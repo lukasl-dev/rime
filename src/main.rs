@@ -1,5 +1,6 @@
 mod handler;
 mod tools;
+
 use handler::RimeServerHandler;
 use rust_mcp_sdk::schema::{
     Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
