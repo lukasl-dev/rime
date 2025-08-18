@@ -32,11 +32,16 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::try_from(request.params).map_err(CallToolError::new)?;
 
         match tool_params {
+            RimeTools::EvaluateTool(tool) => tool.call_tool(),
+            RimeTools::LogTool(tool) => tool.call_tool(),
             RimeTools::PackagesSearchTool(tool) => tool.call_tool(),
             RimeTools::PackagesWhyDepends(tool) => tool.call_tool(),
             RimeTools::FlakesShowTool(tool) => tool.call_tool(),
+            RimeTools::FlakesMetadataTool(tool) => tool.call_tool(),
             RimeTools::WikiSearchTool(tool) => tool.call_tool(),
             RimeTools::WikiGetPageTool(tool) => tool.call_tool(),
+            RimeTools::ConfigCheckTool(tool) => tool.call_tool(),
+            RimeTools::ConfigShowTool(tool) => tool.call_tool(),
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
         }
     }
