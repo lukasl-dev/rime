@@ -33,6 +33,7 @@ impl ServerHandler for RimeServerHandler {
 
         match tool_params {
             RimTools::PackagesSearchTool(tool) => tool.call_tool(),
+            RimTools::FlakeShowTool(tool) => tool.call_tool(),
         }
     }
 }

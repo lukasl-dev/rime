@@ -57,4 +57,45 @@ impl PackagesSearchTool {
     }
 }
 
-tool_box!(RimTools, [PackagesSearchTool]);
+#[mcp_tool(
+    name = "flake.show",
+    description = "Show the outputs provided by a given flake."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct FlakeShowTool {
+    /// The flake to show outputs for.
+    ///
+    /// Examples: "github:neuro-soup/evochi", "/path/to/nixos/flake/dir", etc.
+    flake: String,
+}
+
+impl FlakeShowTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        // Run: nix flake show --json <flake>
+        let output = std::process::Command::new("nix")
+            .args(["flake", "show", "--json", self.flake.as_str()])
+            .output()
+            .map_err(CallToolError::new)?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let err = Error::other(format!(
+                r#"nix flake show (status: {}): {}"#,
+                output.status, stderr
+            ));
+            return Err(CallToolError::new(err));
+        }
+
+        let stdout = String::from_utf8(output.stdout).map_err(CallToolError::new)?;
+        let json_val: serde_json::Value =
+            serde_json::from_str(&stdout).map_err(CallToolError::new)?;
+
+        let pretty = serde_json::to_string_pretty(&json_val).map_err(CallToolError::new)?;
+
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            pretty,
+        )]))
+    }
+}
+
+tool_box!(RimTools, [PackagesSearchTool, FlakeShowTool]);
