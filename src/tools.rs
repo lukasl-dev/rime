@@ -51,7 +51,7 @@ impl EvaluateTool {
     }
 }
 
-#[mcp_tool(name = "evaluate", description = "Evaluate a Nix expression.")]
+#[mcp_tool(name = "log", description = "Evaluate a Nix expression.")]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
 pub struct LogTool {
     /// The name of the installable to get the build log for.
