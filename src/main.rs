@@ -44,7 +44,7 @@ struct HttpArgs {
     port: u16,
 
     /// Enable SSE support for HTTP transport
-    #[arg(long = "no-sse", default_value_t = true)]
+    #[arg(long = "sse", default_value_t = true)]
     sse: bool,
 
     /// Enable JSON responses for HTTP transport (non-streaming)
