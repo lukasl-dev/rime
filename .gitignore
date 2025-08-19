@@ -30,7 +30,8 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
-
-# Added by cargo
-
+# cargo
 /target
+
+# nix
+result
