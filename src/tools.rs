@@ -305,8 +305,8 @@ pub struct WikiSearchTool {
 
 impl WikiSearchTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        // GET https://nixos.wiki/api.php?action=query&list=search&srsearch=<query>&format=json
-        let resp = ureq::get("https://nixos.wiki/api.php")
+        // GET https://wiki.nixos.org/w/api.php?action=query&list=search&srsearch=<query>&format=json
+        let resp = ureq::get("https://wiki.nixos.org/w/api.php")
             .query("action", "query")
             .query("list", "search")
             .query("srsearch", &self.query)
@@ -326,22 +326,76 @@ impl WikiSearchTool {
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
 pub struct WikiGetPageTool {
     /// The name of the page to read from the NixOS wiki.
+    /// Prefer to search for single words, like "Rust", "Traefik", ..., and not
+    /// "ACME Traefik".
     ///
     /// Examples: "Docker", "Go", "Rust", etc.
-    page: String,
+    title: String,
 }
 
 impl WikiGetPageTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        // GET https://nixos.wiki/index.php?title=<page>&action=raw
-        let resp = ureq::get("https://nixos.wiki/index.php")
-            .query("title", &self.page)
-            .query("action", "raw")
-            .call()
-            .map_err(CallToolError::new)?;
+        // GET https://wiki.nixos.org/w/rest.php/v1/page/<title>
 
+        fn encode_title_for_path(title: &str) -> String {
+            // Encode the title for use in a path segment. MediaWiki treats spaces
+            // as underscores in titles, so normalize spaces to underscores and
+            // percent-encode any reserved characters.
+
+            let mut out = String::with_capacity(title.len());
+            for &b in title.replace(' ', "_").as_bytes() {
+                let is_unreserved =
+                    b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~');
+                if is_unreserved {
+                    out.push(b as char);
+                } else {
+                    // Percent-encode all other bytes.
+                    out.push('%');
+                    out.push_str(&format!("{:02X}", b));
+                }
+            }
+            out
+        }
+
+        let encoded_title = encode_title_for_path(&self.title);
+        let url = format!(
+            "https://wiki.nixos.org/w/rest.php/v1/page/{}",
+            encoded_title
+        );
+
+        let resp = ureq::get(&url).call().map_err(CallToolError::new)?;
+        let status = resp.status();
+        let status_text = resp.status_text().to_string();
         let body = resp.into_string().map_err(CallToolError::new)?;
-        Ok(CallToolResult::text_content(vec![TextContent::from(body)]))
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(val) => {
+                if let Some(src) = val.get("source").and_then(|v| v.as_str()) {
+                    Ok(CallToolResult::text_content(vec![TextContent::from(
+                        src.to_string(),
+                    )]))
+                } else {
+                    let pretty = serde_json::to_string_pretty(&val).map_err(CallToolError::new)?;
+                    let err = Error::other(format!(
+                        "wiki returned JSON without 'source' field for title '{}'. Response: {}",
+                        self.title, pretty
+                    ));
+                    Err(CallToolError::new(err))
+                }
+            }
+            Err(e) => {
+                let preview = if body.len() > 500 {
+                    &body[..500]
+                } else {
+                    &body
+                };
+                let err = Error::other(format!(
+                    "wiki returned invalid json (status {} {}): {}. Body preview: {}",
+                    status, status_text, e, preview
+                ));
+                Err(CallToolError::new(err))
+            }
+        }
     }
 }
 
