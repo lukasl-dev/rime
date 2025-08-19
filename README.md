@@ -1,8 +1,18 @@
 # rime
 
-Minimal MCP server for Nix tooling, written in Rust. It uses the rust-mcp-sdk
-and exposes a set of helpful Nix/NixOS tools through the Model Context Protocol
-(MCP).
+<div align="center">
+    <a href="https://www.rust-lang.org/">
+        <img src="https://img.shields.io/badge/Written_In-Rust-ce412b?style=for-the-badge&logo=rust" alt="Rust" />
+    </a>
+    <a href="https://nixos.org">
+        <img src="https://img.shields.io/badge/MCP_for-NixOS-7ebae4?style=for-the-badge&logo=nixos" alt="NixOS" />
+    </a>
+</div>
+
+<br>
+
+Minimal MCP server for Nix tooling, written in Rust. It uses the [rust-mcp-sdk](https://github.com/rust-mcp-stack/rust-mcp-sdk)
+and exposes a set of helpful Nix/NixOS tools through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io).
 
 The binary can run as either:
 
@@ -20,8 +30,8 @@ The binary can run as either:
 - `wiki_search`: Search the NixOS wiki.
 - `wiki_get_page`: Read a page from the NixOS wiki.
 - `config_check`: Run `nix config check`.
-- `config_show`: Show Nix configuration.
-- `manix_search`: Search docs with Manix.
+- `config_show`: Run `nix config show`.
+- `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 
@@ -47,4 +57,47 @@ Stdio transport:
 HTTP transport:
 - Cargo: `cargo run -- http --host 127.0.0.1 --port 8080`
 - Nix: `nix run .#rime -- http --host 127.0.0.1 --port 8080`
+
+## Usage
+
+### OpenAI Codex
+
+Add the following snippet into your `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.rime]
+command = "/path/to/rime"
+args = ["stdio"]
+```
+
+[See codex docs.](https://github.com/openai/codex?tab=readme-ov-file#model-context-protocol-mcp)
+
+### opencode
+
+Add a new MCP server into your opencode config, e.g. globally at `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "rime": {
+      "type": "local",
+      "command": ["/path/to/rime", "stdio"],
+      "enabled": true
+    }
+  }
+}
+```
+
+[See opencode docs.](https://opencode.ai/docs/mcp-servers)
+
+### Claude Code
+
+Run the following command:
+
+```bash
+claude mcp add rime -- /path/to/rime stdio
+```
+
+[See Claude Code docs.](https://docs.anthropic.com/en/docs/claude-code/mcp#local-scope)
 
