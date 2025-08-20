@@ -110,7 +110,7 @@ claude mcp add rime -- /path/to/rime stdio
 
 ### Gemini Code
 
-Add the following `rime` to `mcpServers` to your Gemini config, e.g. globally at `~/.gemini/settings.json`.
+Add the following `rime` to `mcpServers` in your Gemini config, e.g. globally at `~/.gemini/settings.json`.
 
 ```json
 {
