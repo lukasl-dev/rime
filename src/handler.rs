@@ -43,6 +43,8 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::ConfigCheckTool(tool) => tool.call_tool(),
             RimeTools::ConfigShowTool(tool) => tool.call_tool(),
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
+            RimeTools::NixManualListTool(tool) => tool.call_tool(),
+            RimeTools::NixManualReadTool(tool) => tool.call_tool(),
         }
     }
 }

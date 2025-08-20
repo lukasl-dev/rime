@@ -32,29 +32,36 @@ The binary can run as either:
 - `config_check`: Run `nix config check`.
 - `config_show`: Run `nix config show`.
 - `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
+- `nix_manual_list`: List Markdown files in the Nix manual source.
+- `nix_manual_read`: Read a Markdown file from the Nix manual.
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 
 ## Build
 
 With Cargo:
+
 - Debug: `cargo build`
 - Release: `cargo build --release`
 
 With Nix (flake):
+
 - Build: `nix build .#rime` (binary at `./result/bin/rime`)
 
 ## Run
 
 Help:
+
 - Cargo: `cargo run -- --help`
 - Nix: `nix run .#rime -- --help`
 
 Stdio transport:
+
 - Cargo: `cargo run -- stdio`
 - Nix: `nix run .#rime -- stdio`
 
 HTTP transport:
+
 - Cargo: `cargo run -- http --host 127.0.0.1 --port 8080`
 - Nix: `nix run .#rime -- http --host 127.0.0.1 --port 8080`
 
@@ -135,4 +142,3 @@ Add `rime` to `.vscode/mcp.json`:
 ```
 
 [See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
-

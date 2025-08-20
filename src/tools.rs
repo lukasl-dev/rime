@@ -511,6 +511,107 @@ impl ManixSearchTool {
     }
 }
 
+#[mcp_tool(
+    name = "nix_manual_list",
+    description = "List Markdown files in the Nix manual source directory."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NixManualListTool {}
+
+impl NixManualListTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let tree_url = "https://api.github.com/repos/NixOS/nix/git/trees/master?recursive=1";
+        let tree_resp = ureq::get(tree_url)
+            .set(
+                "User-Agent",
+                "rime-manual-list/1.0 (+https://github.com/lukasl-dev/rime)",
+            )
+            .call()
+            .map_err(CallToolError::new)?;
+
+        let status = tree_resp.status();
+        let status_text = tree_resp.status_text().to_string();
+        let tree_body = tree_resp.into_string().map_err(CallToolError::new)?;
+
+        let tree_json: serde_json::Value = match serde_json::from_str(&tree_body) {
+            Ok(v) => v,
+            Err(e) => {
+                let preview = if tree_body.len() > 500 {
+                    &tree_body[..500]
+                } else {
+                    &tree_body
+                };
+                let err = Error::other(format!(
+                    "GitHub trees API returned invalid json (status {} {}): {}. Body preview: {}",
+                    status, status_text, e, preview
+                ));
+                return Err(CallToolError::new(err));
+            }
+        };
+
+        let Some(items) = tree_json.get("tree").and_then(|v| v.as_array()) else {
+            let pretty =
+                serde_json::to_string_pretty(&tree_json).unwrap_or_else(|_| tree_body.clone());
+            let err = Error::other(format!(
+                "GitHub trees API response missing 'tree' array. Response: {}",
+                pretty
+            ));
+            return Err(CallToolError::new(err));
+        };
+
+        let prefix = "doc/manual/source/";
+        let mut md_files: Vec<String> = items
+            .iter()
+            .filter_map(|item| {
+                let path = item.get("path")?.as_str()?;
+                let kind = item.get("type")?.as_str()?;
+                if kind == "blob" && path.starts_with(prefix) && path.ends_with(".md") {
+                    // Strip prefix and extension
+                    let without_prefix = &path[prefix.len()..];
+                    let without_ext = without_prefix.strip_suffix(".md").unwrap_or(without_prefix);
+                    Some(without_ext.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        md_files.sort();
+        md_files.dedup();
+
+        let pretty = serde_json::to_string_pretty(&md_files).map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            pretty,
+        )]))
+    }
+}
+
+#[mcp_tool(
+    name = "nix_manual_read",
+    description = "Read a specific Markdown file from the Nix manual source."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NixManualReadTool {
+    /// The path to the file without the .md extension.
+    ///
+    /// Examples: "language/identifiers", "builtins", etc.
+    path: String,
+}
+
+impl NixManualReadTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let url = format!(
+            "https://raw.githubusercontent.com/NixOS/nix/master/doc/manual/source/{}.md",
+            self.path
+        );
+
+        let resp = ureq::get(&url).call().map_err(CallToolError::new)?;
+        let body = resp.into_string().map_err(CallToolError::new)?;
+
+        Ok(CallToolResult::text_content(vec![TextContent::from(body)]))
+    }
+}
+
 tool_box!(
     RimeTools,
     [
@@ -525,5 +626,7 @@ tool_box!(
         ConfigCheckTool,
         ConfigShowTool,
         ManixSearchTool,
+        NixManualListTool,
+        NixManualReadTool,
     ]
 );
