@@ -101,3 +101,22 @@ claude mcp add rime -- /path/to/rime stdio
 
 [See Claude Code docs.](https://docs.anthropic.com/en/docs/claude-code/mcp#local-scope)
 
+### Gemini Code
+
+Add the following `rime` to `mcpServers` to your Gemini config, e.g. globally at `~/.gemini/settings.json`.
+
+```json
+{
+  "mcpServers": {
+    "rime": {
+      "command": "/path/to/rime",
+      "args": ["stdio"],
+      "timeout": 30000,
+      "trust": false
+    }
+  }
+}
+```
+
+[See Gemini Code docs.](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
+
