@@ -110,13 +110,29 @@ Add the following `rime` to `mcpServers` to your Gemini config, e.g. globally at
   "mcpServers": {
     "rime": {
       "command": "/path/to/rime",
-      "args": ["stdio"],
-      "timeout": 30000,
-      "trust": false
+      "args": ["stdio"]
     }
   }
 }
 ```
 
 [See Gemini Code docs.](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
+
+### VSCode Copilot
+
+Add `rime` to `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "rime": {
+      "type": "stdio",
+      "command": "/path/to/rime",
+      "args": ["stdio"]
+    }
+  }
+}
+```
+
+[See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
 
