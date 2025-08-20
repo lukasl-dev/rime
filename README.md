@@ -125,7 +125,7 @@ Add the following `rime` to `mcpServers` to your Gemini config, e.g. globally at
 
 [See Gemini Code docs.](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
 
-### VSCode Copilot
+### VSCode
 
 Add `rime` to `.vscode/mcp.json`:
 
