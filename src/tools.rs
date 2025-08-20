@@ -474,7 +474,8 @@ impl ConfigShowTool {
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
 pub struct ManixSearchTool {
-    /// The query to search for in the documentation.
+    /// The query to search for in the documentation. The query represents the
+    /// prefix of the options that you want to search for.
     ///
     /// Examples: "programs.git", "services.nginx", etc.
     query: String,
