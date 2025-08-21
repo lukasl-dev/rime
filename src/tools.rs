@@ -514,7 +514,7 @@ impl NixManualListTool {
         let tree_resp = ureq::get(tree_url)
             .set(
                 "User-Agent",
-                "rime-manual-list/1.0 (+https://github.com/lukasl-dev/rime)",
+                "rime/1.0 (+https://github.com/lukasl-dev/rime)",
             )
             .call()
             .map_err(CallToolError::new)?;
@@ -757,6 +757,49 @@ impl ManixSearchTool {
     }
 }
 
+#[mcp_tool(
+    name = "nixhub_package_versions",
+    description = "Get the version history (releases, commit hashes) for a specific package using nixhub."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NixHubPackageVersionsTool {
+    /// The name of the package to find the version history for.
+    ///
+    /// Examples: "git", "glibc", etc.
+    package: String,
+}
+
+impl NixHubPackageVersionsTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let package = &self.package;
+        let url = format!(
+            "https://www.nixhub.io/packages/{package}?_data=routes%2F_nixhub.packages.%24pkg._index"
+        );
+        let resp = ureq::get(&url)
+            .set(
+                "User-Agent",
+                "rime/1.0 (+https://github.com/lukasl-dev/rime)",
+            )
+            .set("Accept", "application/json")
+            .call()
+            .map_err(CallToolError::new)?;
+
+        if resp.status() == 404 {
+            return Err(CallToolError::new(Error::other(
+                "package not found on nixhub",
+            )));
+        }
+        if resp.status() >= 500 {
+            return Err(CallToolError::new(Error::other(
+                "nixhub service temporarily unavailable",
+            )));
+        }
+
+        let body = resp.into_string().map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(body)]))
+    }
+}
+
 tool_box!(
     RimeTools,
     [
@@ -774,5 +817,6 @@ tool_box!(
         NixOSWikiReadPageTool,
         NixOSChannelsTool,
         ManixSearchTool,
+        NixHubPackageVersionsTool,
     ]
 );

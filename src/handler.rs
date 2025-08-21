@@ -46,6 +46,7 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::NixOSWikiReadPageTool(tool) => tool.call_tool(),
             RimeTools::NixConfigCheckTool(tool) => tool.call_tool(),
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
+            RimeTools::NixHubPackageVersionsTool(tool) => tool.call_tool(),
         }
     }
 }
