@@ -39,10 +39,11 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::NixFlakesShowTool(tool) => tool.call_tool(),
             RimeTools::NixFlakesMetadataTool(tool) => tool.call_tool(),
             RimeTools::NixConfigShowTool(tool) => tool.call_tool(),
+            RimeTools::NixOSChannelsTool(tool) => tool.call_tool(),
             RimeTools::NixManualListTool(tool) => tool.call_tool(),
             RimeTools::NixManualReadTool(tool) => tool.call_tool(),
             RimeTools::NixOSWikiSearchTool(tool) => tool.call_tool(),
-            RimeTools::NixOSWikiGetPageTool(tool) => tool.call_tool(),
+            RimeTools::NixOSWikiReadPageTool(tool) => tool.call_tool(),
             RimeTools::NixConfigCheckTool(tool) => tool.call_tool(),
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
         }

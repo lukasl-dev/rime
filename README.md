@@ -33,6 +33,7 @@ The binary can run as either:
 - `nix_manual_read`: Read a Markdown file from the Nix manual.
 - `nixos_wiki_search`: Search the NixOS wiki.
 - `nixos_wiki_read_page`: Read a page from the NixOS wiki.
+- `nixos_channels`: List available NixOS channels with their status.
 - `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.

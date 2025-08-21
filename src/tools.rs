@@ -1,3 +1,4 @@
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Error;
 use std::process::Command;
 
@@ -6,6 +7,14 @@ use rust_mcp_sdk::{
     macros::{JsonSchema, mcp_tool},
     tool_box,
 };
+
+// Constants for NixOS channels API
+const API_BASE: &str = "https://search.nixos.org/backend";
+const AUTH_BASIC_B64: &str = "Basic YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=";
+const GENERATIONS: [i32; 4] = [43, 44, 45, 46];
+const VERSIONS: [&str; 7] = [
+    "unstable", "20.09", "24.11", "25.05", "25.11", "26.05", "30.05",
+];
 
 #[mcp_tool(name = "nix_evaluate", description = "Evaluate a Nix expression.")]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
@@ -358,6 +367,141 @@ impl NixConfigShowTool {
 }
 
 #[mcp_tool(
+    name = "nixos_channels",
+    description = "List available NixOS channels with their status."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NixOSChannelsTool {}
+
+impl NixOSChannelsTool {
+    fn is_available(pattern: &str) -> Result<Option<u64>, CallToolError> {
+        let url = format!("{}/{}/_count", API_BASE, pattern);
+        let resp = ureq::post(&url)
+            .set("Authorization", AUTH_BASIC_B64)
+            .set("Content-Type", "application/json")
+            .send_string("{\"query\":{\"match_all\":{}}}");
+
+        match resp {
+            Ok(r) => {
+                if r.status() == 200 {
+                    let body = r.into_string().unwrap_or_default();
+                    if let Ok(val) = serde_json::from_str::<serde_json::Value>(&body)
+                        && let Some(count) = val.get("count").and_then(|v| v.as_u64())
+                        && count > 0
+                    {
+                        return Ok(Some(count));
+                    }
+                }
+                Ok(None)
+            }
+            Err(_) => Ok(None),
+        }
+    }
+
+    fn extract_version_from_pattern(pattern: &str) -> Option<String> {
+        let parts: Vec<&str> = pattern.split('-').collect();
+        parts.get(3).map(|s| s.to_string())
+    }
+
+    fn parse_version(version: &str) -> Option<(i32, i32)> {
+        let nums: Vec<&str> = version.split('.').collect();
+        if nums.len() == 2 {
+            let major = nums[0].parse::<i32>().ok()?;
+            let minor = nums[1].parse::<i32>().ok()?;
+            Some((major, minor))
+        } else {
+            None
+        }
+    }
+
+    fn format_channel_output(
+        configured: &BTreeMap<String, String>,
+        available: &BTreeMap<String, u64>,
+    ) -> String {
+        let mut lines: Vec<String> = Vec::new();
+
+        for (name, pattern) in configured {
+            let label = if name == "stable" {
+                if let Some(version) = Self::extract_version_from_pattern(pattern) {
+                    format!("- {name} (current: {version})")
+                } else {
+                    format!("- {name}")
+                }
+            } else {
+                format!("- {name}")
+            };
+
+            lines.push(format!("{label}: {pattern}"));
+
+            if let Some(&count) = available.get(pattern) {
+                lines.push(format!("  available ({} documents)", count));
+            } else {
+                lines.push("  unavailable".to_string());
+            }
+            lines.push(String::new());
+        }
+
+        let configured_patterns: BTreeSet<_> = configured.values().collect();
+        let extras: Vec<_> = available
+            .keys()
+            .filter(|k| !configured_patterns.contains(k))
+            .collect();
+
+        if !extras.is_empty() {
+            for pattern in extras {
+                if let Some(&count) = available.get(pattern) {
+                    lines.push(format!("- {pattern} ({count} documents)"));
+                }
+            }
+        }
+
+        lines.join("\n").trim().to_string()
+    }
+
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let mut available: BTreeMap<String, u64> = BTreeMap::new();
+        for &generation in &GENERATIONS {
+            for &version in &VERSIONS {
+                let pattern = format!("latest-{generation}-nixos-{version}");
+                if let Ok(Some(count)) = Self::is_available(&pattern) {
+                    available.insert(pattern, count);
+                }
+            }
+        }
+
+        let mut configured: BTreeMap<String, String> = BTreeMap::new();
+
+        if let Some(unstable_pattern) = available.keys().find(|k| k.contains("unstable")) {
+            configured.insert("unstable".to_string(), unstable_pattern.clone());
+        }
+
+        let mut stable_candidates: Vec<(i32, i32, String)> = Vec::new();
+        for pattern in available.keys() {
+            if !pattern.contains("unstable")
+                && let Some(version) = Self::extract_version_from_pattern(pattern)
+                && let Some((major, minor)) = Self::parse_version(&version)
+            {
+                stable_candidates.push((major, minor, pattern.clone()));
+            }
+        }
+
+        if !stable_candidates.is_empty() {
+            stable_candidates.sort_by(|a, b| b.cmp(a));
+            let latest_pattern = &stable_candidates[0].2;
+            let latest_version = Self::extract_version_from_pattern(latest_pattern).unwrap();
+
+            configured.insert("stable".to_string(), latest_pattern.clone());
+            configured.insert("beta".to_string(), latest_pattern.clone());
+            configured.insert(latest_version, latest_pattern.clone());
+        }
+
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            Self::format_channel_output(&configured, &available),
+        )]))
+    }
+}
+
+#[mcp_tool(
     name = "nix_manual_list",
     description = "List Markdown files in the Nix manual source directory."
 )]
@@ -494,7 +638,7 @@ impl NixOSWikiSearchTool {
     description = "Read the page from NixOS's wiki."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
-pub struct NixOSWikiGetPageTool {
+pub struct NixOSWikiReadPageTool {
     /// The name of the page to read from the NixOS wiki.
     /// Prefer to search for single words, like "Rust", "Traefik", ..., and not
     /// "ACME Traefik".
@@ -503,7 +647,7 @@ pub struct NixOSWikiGetPageTool {
     title: String,
 }
 
-impl NixOSWikiGetPageTool {
+impl NixOSWikiReadPageTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         // GET https://wiki.nixos.org/w/rest.php/v1/page/<title>
 
@@ -622,12 +766,13 @@ tool_box!(
         NixPackagesWhyDepends,
         NixFlakesShowTool,
         NixFlakesMetadataTool,
-        NixOSWikiSearchTool,
-        NixOSWikiGetPageTool,
         NixConfigCheckTool,
         NixConfigShowTool,
-        ManixSearchTool,
         NixManualListTool,
         NixManualReadTool,
+        NixOSWikiSearchTool,
+        NixOSWikiReadPageTool,
+        NixOSChannelsTool,
+        ManixSearchTool,
     ]
 );
