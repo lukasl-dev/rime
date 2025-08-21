@@ -21,19 +21,19 @@ The binary can run as either:
 
 ## Tools
 
-- `evaluate`: Evaluate a Nix expression.
-- `log`: Get build log for an installable.
-- `packages_search`: Search packages in an installable.
-- `packages_why_depends`: Show why a package depends on another.
-- `flakes_show`: Show a flake's outputs.
-- `flakes_metadata`: Show flake metadata.
-- `wiki_search`: Search the NixOS wiki.
-- `wiki_get_page`: Read a page from the NixOS wiki.
-- `config_check`: Run `nix config check`.
-- `config_show`: Run `nix config show`.
-- `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
+- `nix_evaluate`: Evaluate a Nix expression.
+- `nix_log`: Get build log for an installable.
+- `nix_packages_search`: Search packages in an installable.
+- `nix_packages_why_depends`: Show why a package depends on another.
+- `nix_flakes_show`: Show a flake's outputs.
+- `nix_flakes_metadata`: Show flake metadata.
+- `nix_config_check`: Run `nix config check`.
+- `nix_config_show`: Run `nix config show`.
 - `nix_manual_list`: List Markdown files in the Nix manual source.
 - `nix_manual_read`: Read a Markdown file from the Nix manual.
+- `nixos_wiki_search`: Search the NixOS wiki.
+- `nixos_wiki_read_page`: Read a page from the NixOS wiki.
+- `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 

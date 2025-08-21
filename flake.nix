@@ -1,5 +1,5 @@
 {
-  description = "rime: MCP server (Rust) with Nix flake packaging";
+  description = "rime";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
