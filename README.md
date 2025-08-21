@@ -35,6 +35,7 @@ The binary can run as either:
 - `nixos_wiki_read_page`: Read a page from the NixOS wiki.
 - `nixos_channels`: List available NixOS channels with their status.
 - `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
+- `nixhub_package_versions`: Get the version history (releases, commit hashes) for a specific package using [nixhub](https://nixhub.io).
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 
@@ -143,3 +144,10 @@ Add `rime` to `.vscode/mcp.json`:
 ```
 
 [See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+
+## Credits
+
+- [manix](https://github.com/mlvzk/manix)
+- [nixhub](https://nixhub.io/)
+- [mcp-nixos](https://github.com/utensils/mcp-nixos)
+
