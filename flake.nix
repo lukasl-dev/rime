@@ -21,6 +21,11 @@
     };
   };
 
+  nixConfig = {
+    extra-trusted-public-keys = "rime.cachix.org-1:rC+wEyizw3QNPt5uvsSEme2s2sm7l7372ZIllGGxp8w=";
+    extra-substituters = "https://rime.cachix.org";
+  };
+
   outputs =
     {
       self,
