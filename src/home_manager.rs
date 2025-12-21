@@ -11,6 +11,8 @@ pub(crate) struct HomeManagerOption {
     pub(crate) name: String,
     pub(crate) description: String,
     pub(crate) type_info: String,
+    pub(crate) default_value: String,
+    pub(crate) declared_by: String,
 }
 
 fn decode_html_entities(input: &str) -> String {
@@ -111,25 +113,130 @@ fn extract_description(dd_block: &str) -> String {
 }
 
 fn extract_type_info(dd_block: &str) -> String {
-    let text = clean_html_text(dd_block);
-    let Some(type_idx) = text.find("Type:") else {
+    extract_section_value(
+        dd_block,
+        "Type:",
+        &[
+            "Default:",
+            "Example:",
+            "Declared by:",
+            "Defined by:",
+            "Related packages:",
+            "Related options:",
+        ],
+    )
+}
+
+fn extract_default_value(dd_block: &str) -> String {
+    extract_section_value(
+        dd_block,
+        "Default:",
+        &[
+            "Example:",
+            "Declared by:",
+            "Defined by:",
+            "Related packages:",
+            "Related options:",
+            "Type:",
+        ],
+    )
+}
+
+fn extract_declared_by(dd_block: &str) -> String {
+    let Some(section) = extract_section_html(
+        dd_block,
+        "Declared by:",
+        &[
+            "Defined by:",
+            "Related packages:",
+            "Related options:",
+            "Example:",
+            "Default:",
+            "Type:",
+        ],
+    ) else {
         return String::new();
     };
 
-    let rest = text[type_idx + "Type:".len()..].trim_start();
+    let links = extract_links(section);
+    if links.is_empty() {
+        String::new()
+    } else {
+        links.join(", ")
+    }
+}
+
+fn extract_links(section: &str) -> Vec<String> {
+    let mut links = Vec::new();
+    let mut seen = HashSet::new();
+    let mut cursor = 0;
+
+    while let Some(href_rel) = section[cursor..].find("href=") {
+        let href_start = cursor + href_rel + "href=".len();
+        let bytes = section.as_bytes();
+        if href_start >= bytes.len() {
+            break;
+        }
+
+        let quote = bytes[href_start];
+        if quote != b'"' && quote != b'\'' {
+            cursor = href_start + 1;
+            continue;
+        }
+
+        let mut end = href_start + 1;
+        while end < bytes.len() && bytes[end] != quote {
+            end += 1;
+        }
+        if end >= bytes.len() {
+            break;
+        }
+
+        let url = &section[href_start + 1..end];
+        let decoded = decode_html_entities(url);
+        if !decoded.is_empty() && seen.insert(decoded.clone()) {
+            links.push(decoded);
+        }
+
+        cursor = end + 1;
+    }
+
+    links
+}
+
+fn extract_section_html<'a>(
+    input: &'a str,
+    label: &str,
+    stop_markers: &[&str],
+) -> Option<&'a str> {
+    let label_idx = input.find(label)?;
+    let rest = &input[label_idx + label.len()..];
+    let mut end = rest.len();
+
+    for marker in stop_markers {
+        if let Some(idx) = rest.find(marker) {
+            if idx < end {
+                end = idx;
+            }
+        }
+    }
+
+    Some(&rest[..end])
+}
+
+fn extract_section_value(dd_block: &str, label: &str, stop_markers: &[&str]) -> String {
+    let text = clean_html_text(dd_block);
+    let Some(section_idx) = text.find(label) else {
+        return String::new();
+    };
+
+    let rest = text[section_idx + label.len()..].trim_start();
     if rest.is_empty() {
         return String::new();
     }
 
     let mut end = rest.len();
-    for marker in [
-        "Default:",
-        "Example:",
-        "Declared by:",
-        "Defined by:",
-        "Related packages:",
-        "Related options:",
-    ] {
+    for marker in stop_markers {
         if let Some(idx) = rest.find(marker) {
             if idx < end {
                 end = idx;
@@ -183,11 +290,15 @@ fn parse_home_manager_options(
 
         let mut description = String::new();
         let mut type_info = String::new();
+        let mut default_value = String::new();
+        let mut declared_by = String::new();
         let mut next_cursor = cursor;
 
         if let Some((dd_block, dd_next_cursor)) = extract_dd_block(html, cursor) {
             description = extract_description(dd_block);
             type_info = extract_type_info(dd_block);
+            default_value = extract_default_value(dd_block);
+            declared_by = extract_declared_by(dd_block);
             next_cursor = dd_next_cursor;
         }
 
@@ -201,6 +312,8 @@ fn parse_home_manager_options(
             name,
             description,
             type_info: type_info.trim().to_string(),
+            default_value: default_value.trim().to_string(),
+            declared_by: declared_by.trim().to_string(),
         });
 
         cursor = next_cursor;

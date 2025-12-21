@@ -762,6 +762,12 @@ impl HomeManagerOptionsSearch {
             if !option.type_info.is_empty() {
                 lines.push(format!("  type: {}", option.type_info));
             }
+            if !option.default_value.is_empty() {
+                lines.push(format!("  default: {}", option.default_value));
+            }
+            if !option.declared_by.is_empty() {
+                lines.push(format!("  declared by: {}", option.declared_by));
+            }
             if !option.description.is_empty() {
                 lines.push(format!("  {}", option.description));
             }
