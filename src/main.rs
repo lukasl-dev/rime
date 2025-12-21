@@ -65,7 +65,14 @@ fn server_details() -> InitializeResult {
             ..Default::default()
         },
         meta: None,
-        instructions: None,
+        instructions: Some(
+            "Rime provides MCP tools for Nix/NixOS workflows.\n\
+Use nix_evaluate, nix_log, nix_packages_search, and nix_packages_why_depends for local nix.\n\
+Use nix_manual_* and nixos_wiki_* for documentation lookups.\n\
+Use home_manager_options_search to query Home Manager options.\n\
+Most tools shell out to nix; ensure it is on PATH."
+                .to_string(),
+        ),
         protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
     }
 }
