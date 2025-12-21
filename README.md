@@ -146,6 +146,22 @@ Add `rime` to `.vscode/mcp.json`:
 
 [See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
 
+### Zed
+
+```json
+{
+  "context_servers": {
+    "rime": {
+      "command": "/path/to/rime",
+      "args": ["stdio"],
+      "env": {}
+    }
+  }
+}
+```
+
+[See Zed docs.](https://zed.dev/docs/ai/mcp#as-custom-servers)
+
 ## Credits
 
 - [manix](https://github.com/mlvzk/manix)
