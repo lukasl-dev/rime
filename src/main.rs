@@ -1,4 +1,5 @@
 mod handler;
+mod home_manager;
 mod tools;
 
 use clap::{Parser, Subcommand};

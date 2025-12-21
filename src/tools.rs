@@ -8,6 +8,8 @@ use rust_mcp_sdk::{
     tool_box,
 };
 
+use crate::home_manager::search_home_manager_options;
+
 const NIXOS_API_BASE: &str = "https://search.nixos.org/backend";
 const AUTH_BASIC_B64: &str = "Basic YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=";
 const NIXOS_GENERATIONS: [i32; 4] = [43, 44, 45, 46];
@@ -720,6 +722,59 @@ impl NixHubPackageVersionsTool {
     }
 }
 
+#[mcp_tool(
+    name = "home_manager_options_search",
+    description = "Search for home manager options."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct HomeManagerOptionsSearch {
+    /// The query to search for in the home manager options.
+    ///
+    /// Examples: "programs.git", "programs.chromium", etc.
+    query: String,
+}
+
+impl HomeManagerOptionsSearch {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let options =
+            search_home_manager_options(self.query.as_str()).map_err(CallToolError::new)?;
+
+        if options.is_empty() {
+            let message = format!(
+                "no home manager options found matching '{}'",
+                self.query.trim()
+            );
+            return Ok(CallToolResult::text_content(vec![TextContent::from(
+                message,
+            )]));
+        }
+
+        let mut lines = Vec::new();
+        lines.push(format!(
+            "found {} home manager options matching '{}':",
+            options.len(),
+            self.query.trim()
+        ));
+        lines.push(String::new());
+
+        for option in options {
+            lines.push(format!("- {}", option.name));
+            if !option.type_info.is_empty() {
+                lines.push(format!("  type: {}", option.type_info));
+            }
+            if !option.description.is_empty() {
+                lines.push(format!("  {}", option.description));
+            }
+            lines.push(String::new());
+        }
+
+        let output = lines.join("\n").trim().to_string();
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            output,
+        )]))
+    }
+}
+
 tool_box!(
     RimeTools,
     [
@@ -738,5 +793,6 @@ tool_box!(
         NixOSChannelsTool,
         ManixSearchTool,
         NixHubPackageVersionsTool,
+        HomeManagerOptionsSearch,
     ]
 );

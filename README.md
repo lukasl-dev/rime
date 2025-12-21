@@ -36,6 +36,7 @@ The binary can run as either:
 - `nixos_channels`: List available NixOS channels with their status.
 - `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
 - `nixhub_package_versions`: Get the version history (releases, commit hashes) for a specific package using [nixhub](https://nixhub.io).
+- `home_manager_options_search`: Search Home Manager options.
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 
