@@ -48,6 +48,9 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
             RimeTools::NixHubPackageVersionsTool(tool) => tool.call_tool(),
             RimeTools::HomeManagerOptionsSearch(tool) => tool.call_tool(),
+            RimeTools::NvfOptionsSearchTool(tool) => tool.call_tool(),
+            RimeTools::NvfManualListTool(tool) => tool.call_tool(),
+            RimeTools::NvfManualReadTool(tool) => tool.call_tool(),
         }
     }
 }

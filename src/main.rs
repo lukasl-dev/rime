@@ -1,5 +1,6 @@
 mod handler;
 mod home_manager;
+mod nvf;
 mod tools;
 
 use clap::{Parser, Subcommand};
@@ -70,6 +71,9 @@ fn server_details() -> InitializeResult {
 Use nix_evaluate, nix_log, nix_packages_search, and nix_packages_why_depends for local nix.\n\
 Use nix_manual_* and nixos_wiki_* for documentation lookups.\n\
 Use home_manager_options_search to query Home Manager options.\n\
+Use nvf_options_search to search for nvf (Neovim Flake) options.\n\
+Use nvf_manual_* for nvf documentation lookups.\n\
+Note: When creating inline Lua functions in nvf, use lib.generators.mkLuaInline.\n\
 Most tools shell out to nix; ensure it is on PATH."
                 .to_string(),
         ),

@@ -9,6 +9,7 @@ use rust_mcp_sdk::{
 };
 
 use crate::home_manager::search_home_manager_options;
+use crate::nvf::{list_nvf_manual, read_nvf_manual, search_nvf_options};
 
 const NIXOS_API_BASE: &str = "https://search.nixos.org/backend";
 const AUTH_BASIC_B64: &str = "Basic YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=";
@@ -800,5 +801,96 @@ tool_box!(
         ManixSearchTool,
         NixHubPackageVersionsTool,
         HomeManagerOptionsSearch,
+        NvfOptionsSearchTool,
+        NvfManualListTool,
+        NvfManualReadTool,
     ]
 );
+
+#[mcp_tool(
+    name = "nvf_manual_list",
+    description = "List Markdown files in the nvf manual source directory."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NvfManualListTool {}
+
+impl NvfManualListTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let md_files = list_nvf_manual().map_err(CallToolError::new)?;
+        let pretty = serde_json::to_string_pretty(&md_files).map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            pretty,
+        )]))
+    }
+}
+
+#[mcp_tool(
+    name = "nvf_manual_read",
+    description = "Read a specific Markdown file from the nvf manual source."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NvfManualReadTool {
+    /// The path to the file without the .md extension.
+    ///
+    /// Examples: "configuring/languages/lsp", "installation/standalone/nixos", etc.
+    path: String,
+}
+
+impl NvfManualReadTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let content = read_nvf_manual(&self.path).map_err(CallToolError::new)?;
+        Ok(CallToolResult::text_content(vec![TextContent::from(content)]))
+    }
+}
+
+#[mcp_tool(
+    name = "nvf_options_search",
+    description = "Search for nvf (Neovim Flake) options."
+)]
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+pub struct NvfOptionsSearchTool {
+    /// The query to search for in the nvf options.
+    ///
+    /// Examples: "vim.languages.nix", "vim.theme", etc.
+    query: String,
+}
+
+impl NvfOptionsSearchTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let options = search_nvf_options(self.query.as_str()).map_err(CallToolError::new)?;
+
+        if options.is_empty() {
+            let message = format!("no nvf options found matching '{}'", self.query.trim());
+            return Ok(CallToolResult::text_content(vec![TextContent::from(
+                message,
+            )]));
+        }
+
+        let mut lines = Vec::new();
+        lines.push(format!(
+            "found {} nvf options matching '{}':",
+            options.len(),
+            self.query.trim()
+        ));
+        lines.push(String::new());
+
+        for opt in options {
+            lines.push(format!("- {}", opt.name));
+            if !opt.r#type.is_empty() {
+                lines.push(format!("  type: {}", opt.r#type));
+            }
+            if !opt.default.is_empty() {
+                lines.push(format!("  default: {}", opt.default));
+            }
+            if !opt.description.is_empty() {
+                lines.push(format!("  {}", opt.description));
+            }
+            lines.push(String::new());
+        }
+
+        let output = lines.join("\n").trim().to_string();
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            output,
+        )]))
+    }
+}
