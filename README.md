@@ -37,6 +37,9 @@ The binary can run as either:
 - `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
 - `nixhub_package_versions`: Get the version history (releases, commit hashes) for a specific package using [nixhub](https://nixhub.io).
 - `home_manager_options_search`: Search Home Manager options.
+- `nvf_options_search`: Search [nvf](https://github.com/notashelf/nvf) options.
+- `nvf_manual_list`: List Markdown files in the nvf manual source.
+- `nvf_manual_read`: Read a Markdown file from the nvf manual.
 
 Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
 
@@ -70,7 +73,8 @@ HTTP transport:
 
 ## Usage
 
-### OpenAI Codex
+<details>
+<summary><b>OpenAI Codex</b></summary>
 
 Add the following snippet into your `~/.codex/config.toml`:
 
@@ -81,8 +85,10 @@ args = ["stdio"]
 ```
 
 [See codex docs.](https://github.com/openai/codex?tab=readme-ov-file#model-context-protocol-mcp)
+</details>
 
-### opencode
+<details>
+<summary><b>opencode</b></summary>
 
 Add a new MCP server into your opencode config, e.g. globally at `~/.config/opencode/opencode.json`:
 
@@ -100,8 +106,10 @@ Add a new MCP server into your opencode config, e.g. globally at `~/.config/open
 ```
 
 [See opencode docs.](https://opencode.ai/docs/mcp-servers)
+</details>
 
-### Claude Code
+<details>
+<summary><b>Claude Code</b></summary>
 
 Run the following command:
 
@@ -110,8 +118,10 @@ claude mcp add rime -- /path/to/rime stdio
 ```
 
 [See Claude Code docs.](https://docs.anthropic.com/en/docs/claude-code/mcp#local-scope)
+</details>
 
-### Gemini Code
+<details>
+<summary><b>Gemini Code</b></summary>
 
 Add the following `rime` to `mcpServers` in your Gemini config, e.g. globally at `~/.gemini/settings.json`.
 
@@ -127,8 +137,10 @@ Add the following `rime` to `mcpServers` in your Gemini config, e.g. globally at
 ```
 
 [See Gemini Code docs.](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
+</details>
 
-### VSCode
+<details>
+<summary><b>VSCode</b></summary>
 
 Add `rime` to `.vscode/mcp.json`:
 
@@ -145,8 +157,10 @@ Add `rime` to `.vscode/mcp.json`:
 ```
 
 [See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+</details>
 
-### Zed
+<details>
+<summary><b>Zed</b></summary>
 
 ```json
 {
@@ -161,10 +175,12 @@ Add `rime` to `.vscode/mcp.json`:
 ```
 
 [See Zed docs.](https://zed.dev/docs/ai/mcp#as-custom-servers)
+</details>
 
 ## Credits
 
 - [manix](https://github.com/mlvzk/manix)
 - [nixhub](https://nixhub.io/)
+- [nvf](https://github.com/notashelf/nvf)
 - [mcp-nixos](https://github.com/utensils/mcp-nixos)
 
