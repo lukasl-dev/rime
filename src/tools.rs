@@ -557,11 +557,11 @@ impl NixOSWikiSearchTool {
 }
 
 #[mcp_tool(
-    name = "nixos_wiki_read_page",
+    name = "nixos_wiki_read",
     description = "Read the page from NixOS's wiki."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
-pub struct NixOSWikiReadPageTool {
+pub struct NixOSWikiReadTool {
     /// The name of the page to read from the NixOS wiki.
     /// Prefer to search for single words, like "Rust", "Traefik", ..., and not
     /// "ACME Traefik".
@@ -570,7 +570,7 @@ pub struct NixOSWikiReadPageTool {
     title: String,
 }
 
-impl NixOSWikiReadPageTool {
+impl NixOSWikiReadTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         // GET https://wiki.nixos.org/w/rest.php/v1/page/<title>
 
@@ -643,7 +643,8 @@ impl NixOSWikiReadPageTool {
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
 pub struct ManixSearchTool {
     /// The query to search for in the documentation. The query represents the
-    /// prefix of the options that you want to search for.
+    /// prefix of the options that you want to search for. Only nixpkgs options
+    /// can be queried (no home-manager, nvf, ...).
     ///
     /// Examples: "programs.git", "services.nginx", etc.
     query: String,
@@ -796,7 +797,7 @@ tool_box!(
         NixManualListTool,
         NixManualReadTool,
         NixOSWikiSearchTool,
-        NixOSWikiReadPageTool,
+        NixOSWikiReadTool,
         NixOSChannelsTool,
         ManixSearchTool,
         NixHubPackageVersionsTool,
@@ -839,7 +840,9 @@ pub struct NvfManualReadTool {
 impl NvfManualReadTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
         let content = read_nvf_manual(&self.path).map_err(CallToolError::new)?;
-        Ok(CallToolResult::text_content(vec![TextContent::from(content)]))
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            content,
+        )]))
     }
 }
 

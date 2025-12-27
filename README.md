@@ -35,7 +35,7 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 <summary><b>❄️ NixOS</b></summary>
 
 - `nixos_wiki_search`: Search the NixOS wiki.
-- `nixos_wiki_read_page`: Read a page from the NixOS wiki.
+- `nixos_wiki_read`: Read a page from the NixOS wiki.
 - `nixos_channels`: List available NixOS channels with their status.
 </details>
 

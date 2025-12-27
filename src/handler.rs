@@ -43,7 +43,7 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::NixManualListTool(tool) => tool.call_tool(),
             RimeTools::NixManualReadTool(tool) => tool.call_tool(),
             RimeTools::NixOSWikiSearchTool(tool) => tool.call_tool(),
-            RimeTools::NixOSWikiReadPageTool(tool) => tool.call_tool(),
+            RimeTools::NixOSWikiReadTool(tool) => tool.call_tool(),
             RimeTools::NixConfigCheckTool(tool) => tool.call_tool(),
             RimeTools::ManixSearchTool(tool) => tool.call_tool(),
             RimeTools::NixHubPackageVersionsTool(tool) => tool.call_tool(),
