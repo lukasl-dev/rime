@@ -1,6 +1,7 @@
 mod handler;
 mod home_manager;
 mod nvf;
+mod nixos;
 mod tools;
 
 use clap::{Parser, Subcommand};
@@ -70,6 +71,7 @@ fn server_details() -> InitializeResult {
             "Rime provides MCP tools for Nix/NixOS workflows.\n\
 Use nix_evaluate, nix_log, nix_packages_search, and nix_packages_why_depends for local nix.\n\
 Use nix_manual_* and nixos_wiki_* for documentation lookups.\n\
+Use nixos_options_search to search for NixOS options in nixpkgs for a specific ref.\n\
 Use home_manager_options_search to query Home Manager options.\n\
 Use nvf_options_search to search for nvf (Neovim Flake) options.\n\
 Use nvf_manual_* for nvf documentation lookups.\n\

@@ -10,6 +10,7 @@ use rust_mcp_sdk::{
 
 use crate::home_manager::search_home_manager_options;
 use crate::nvf::{list_nvf_manual, read_nvf_manual, search_nvf_options};
+use crate::nixos::search_nixos_options;
 
 const NIXOS_API_BASE: &str = "https://search.nixos.org/backend";
 const AUTH_BASIC_B64: &str = "Basic YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=";
@@ -805,8 +806,77 @@ tool_box!(
         NvfOptionsSearchTool,
         NvfManualListTool,
         NvfManualReadTool,
+        NixOSOptionsSearchTool,
     ]
 );
+
+#[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
+#[mcp_tool(
+    name = "nixos_options_search",
+    description = "Search for NixOS options in nixpkgs for a specific ref."
+)]
+pub struct NixOSOptionsSearchTool {
+    /// The query to search for in the NixOS options.
+    ///
+    /// Examples: "boot.loader.grub", "services.xserver", etc.
+    query: String,
+
+    /// The nixpkgs ref to search in.
+    ///
+    /// Examples: "nixos-unstable", "nixos-24.11", "master", or a commit hash.
+    #[serde(default = "default_nixpkgs_ref")]
+    ref_name: String,
+}
+
+fn default_nixpkgs_ref() -> String {
+    "nixos-unstable".to_string()
+}
+
+impl NixOSOptionsSearchTool {
+    pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
+        let options = search_nixos_options(self.query.as_str(), self.ref_name.as_str())
+            .map_err(CallToolError::new)?;
+
+        if options.is_empty() {
+            let message = format!(
+                "no NixOS options found matching '{}' in nixpkgs ref '{}'",
+                self.query.trim(),
+                self.ref_name
+            );
+            return Ok(CallToolResult::text_content(vec![TextContent::from(
+                message,
+            )]));
+        }
+
+        let mut lines = Vec::new();
+        lines.push(format!(
+            "found {} NixOS options matching '{}' in nixpkgs ref '{}':",
+            options.len(),
+            self.query.trim(),
+            self.ref_name
+        ));
+        lines.push(String::new());
+
+        for opt in options {
+            lines.push(format!("- {}", opt.name));
+            if !opt.r#type.is_empty() {
+                lines.push(format!("  type: {}", opt.r#type));
+            }
+            if !opt.default.is_empty() {
+                lines.push(format!("  default: {}", opt.default));
+            }
+            if !opt.description.is_empty() {
+                lines.push(format!("  {}", opt.description.trim()));
+            }
+            lines.push(String::new());
+        }
+
+        let output = lines.join("\n").trim().to_string();
+        Ok(CallToolResult::text_content(vec![TextContent::from(
+            output,
+        )]))
+    }
+}
 
 #[mcp_tool(
     name = "nvf_manual_list",

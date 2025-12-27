@@ -51,6 +51,7 @@ impl ServerHandler for RimeServerHandler {
             RimeTools::NvfOptionsSearchTool(tool) => tool.call_tool(),
             RimeTools::NvfManualListTool(tool) => tool.call_tool(),
             RimeTools::NvfManualReadTool(tool) => tool.call_tool(),
+            RimeTools::NixOSOptionsSearchTool(tool) => tool.call_tool(),
         }
     }
 }
