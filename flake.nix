@@ -5,11 +5,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
 
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,11 +25,10 @@
     {
       self,
       nixpkgs,
-      devenv,
       systems,
       crane,
       rust-overlay,
-    }@inputs:
+    }:
     let
       pname = "rime";
       version = builtins.readFile ./VERSION;
@@ -49,7 +43,7 @@
       mkRime =
         pkgs:
         let
-          rustToolchain = pkgs.rust-bin.nightly.latest.default;
+          rustToolchain = pkgs.rust-bin.nightly.latest.minimal;
           craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
           src = craneLib.cleanCargoSource (craneLib.path ./.);
           commonArgs = { inherit src pname version; };
@@ -82,27 +76,26 @@
       devShells = forEachSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = mkPkgs system;
+          rustToolchain = pkgs.rust-bin.nightly.latest.minimal.override {
+            extensions = [
+              "rust-src"
+              "rust-analyzer"
+              "clippy"
+              "rustfmt"
+            ];
+          };
         in
         {
-          default = devenv.lib.mkShell {
-            inherit inputs pkgs;
-            modules = [
-              (
-                { pkgs, ... }:
-                {
-                  packages = [ pkgs.pkg-config ];
-                  languages.rust = {
-                    enable = true;
-                    channel = "nightly";
-                    targets = [
-                      "x86_64-unknown-linux-musl"
-                      "x86_64-unknown-linux-gnu"
-                    ];
-                  };
-                }
-              )
+          default = pkgs.mkShell {
+            packages = [
+              rustToolchain
+              pkgs.pkg-config
             ];
+
+            shellHook = ''
+              export RUST_SRC_PATH="${rustToolchain}/lib/rustlib/src/rust/library"
+            '';
           };
         }
       );
