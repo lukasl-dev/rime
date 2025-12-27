@@ -11,15 +11,12 @@
 
 <br>
 
-Minimal MCP server for Nix tooling, written in Rust. It uses the [rust-mcp-sdk](https://github.com/rust-mcp-stack/rust-mcp-sdk)
-and exposes a set of helpful Nix/NixOS tools through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io).
-
-The binary can run as either:
-
-- MCP over stdio
-- MCP over HTTP (with SSE or JSON-only responses)
+A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for Nix tooling, written in Rust.
 
 ## Tools
+
+<details>
+<summary><b>❄️ Nix</b></summary>
 
 - `nix_evaluate`: Evaluate a Nix expression.
 - `nix_log`: Get build log for an installable.
@@ -29,72 +26,79 @@ The binary can run as either:
 - `nix_flakes_metadata`: Show flake metadata.
 - `nix_config_check`: Run `nix config check`.
 - `nix_config_show`: Run `nix config show`.
-- `nix_manual_list`: List Markdown files in the Nix manual source.
+- `nix_manual_list`: List Markdown files in the Nix manual.
 - `nix_manual_read`: Read a Markdown file from the Nix manual.
+- `nixhub_package_versions`: Get version history for a package via [nixhub](https://nixhub.io).
+</details>
+
+<details>
+<summary><b>❄️ NixOS</b></summary>
+
 - `nixos_wiki_search`: Search the NixOS wiki.
 - `nixos_wiki_read_page`: Read a page from the NixOS wiki.
 - `nixos_channels`: List available NixOS channels with their status.
-- `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
-- `nixhub_package_versions`: Get the version history (releases, commit hashes) for a specific package using [nixhub](https://nixhub.io).
+</details>
+
+<details>
+<summary><b>🏠 Home Manager</b></summary>
+
 - `home_manager_options_search`: Search Home Manager options.
+</details>
+
+<details>
+<summary><b>🌑 nvf</b></summary>
+
 - `nvf_options_search`: Search [nvf](https://github.com/notashelf/nvf) options.
-- `nvf_manual_list`: List Markdown files in the nvf manual source.
-- `nvf_manual_read`: Read a Markdown file from the nvf manual.
+- `nvf_manual_list`: List files in the nvf manual.
+- `nvf_manual_read`: Read a file from the nvf manual.
+</details>
 
-Note: Most tools shell out to `nix`; ensure `nix` is installed and available on `PATH`.
+<details>
+<summary><b>🔍 General Tools</b></summary>
 
-## Build
+- `manix_search`: Search docs with [manix](https://github.com/mlvzk/manix).
+</details>
 
-With Cargo:
+## Getting Started
 
-- Debug: `cargo build`
-- Release: `cargo build --release`
+### Prerequisites
 
-With Nix (flake):
+Ensure `nix` is installed and available on your `PATH`.
 
-- Build: `nix build .#rime` (binary at `./result/bin/rime`)
+### Build & Run
 
-## Run
+```bash
+# Build
+nix build .#rime
 
-Help:
+# Run (Stdio)
+./result/bin/rime stdio
 
-- Cargo: `cargo run -- --help`
-- Nix: `nix run .#rime -- --help`
-
-Stdio transport:
-
-- Cargo: `cargo run -- stdio`
-- Nix: `nix run .#rime -- stdio`
-
-HTTP transport:
-
-- Cargo: `cargo run -- http --host 127.0.0.1 --port 8080`
-- Nix: `nix run .#rime -- http --host 127.0.0.1 --port 8080`
+# Run (HTTP)
+./result/bin/rime http --host 127.0.0.1 --port 8080
+```
 
 ## Usage
 
 <details>
 <summary><b>OpenAI Codex</b></summary>
 
-Add the following snippet into your `~/.codex/config.toml`:
+Add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.rime]
 command = "/path/to/rime"
 args = ["stdio"]
 ```
-
-[See codex docs.](https://github.com/openai/codex?tab=readme-ov-file#model-context-protocol-mcp)
 </details>
 
 <details>
 <summary><b>opencode</b></summary>
 
-Add a new MCP server into your opencode config, e.g. globally at `~/.config/opencode/opencode.json`:
+Add to `~/.config/opencode/opencode.json`:
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "rime": {
       "type": "local",
@@ -104,26 +108,20 @@ Add a new MCP server into your opencode config, e.g. globally at `~/.config/open
   }
 }
 ```
-
-[See opencode docs.](https://opencode.ai/docs/mcp-servers)
 </details>
 
 <details>
 <summary><b>Claude Code</b></summary>
 
-Run the following command:
-
 ```bash
 claude mcp add rime -- /path/to/rime stdio
 ```
-
-[See Claude Code docs.](https://docs.anthropic.com/en/docs/claude-code/mcp#local-scope)
 </details>
 
 <details>
 <summary><b>Gemini Code</b></summary>
 
-Add the following `rime` to `mcpServers` in your Gemini config, e.g. globally at `~/.gemini/settings.json`.
+Add to `~/.gemini/settings.json`:
 
 ```json
 {
@@ -135,46 +133,40 @@ Add the following `rime` to `mcpServers` in your Gemini config, e.g. globally at
   }
 }
 ```
-
-[See Gemini Code docs.](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
 </details>
 
 <details>
 <summary><b>VSCode</b></summary>
 
-Add `rime` to `.vscode/mcp.json`:
+Add to `.vscode/mcp.json`:
 
 ```json
 {
   "servers": {
     "rime": {
-      "type": "stdio",
       "command": "/path/to/rime",
       "args": ["stdio"]
     }
   }
 }
 ```
-
-[See VSCode Copilot docs.](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
 </details>
 
 <details>
 <summary><b>Zed</b></summary>
+
+Add to `settings.json`:
 
 ```json
 {
   "context_servers": {
     "rime": {
       "command": "/path/to/rime",
-      "args": ["stdio"],
-      "env": {}
+      "args": ["stdio"]
     }
   }
 }
 ```
-
-[See Zed docs.](https://zed.dev/docs/ai/mcp#as-custom-servers)
 </details>
 
 ## Credits
@@ -183,4 +175,4 @@ Add `rime` to `.vscode/mcp.json`:
 - [nixhub](https://nixhub.io/)
 - [nvf](https://github.com/notashelf/nvf)
 - [mcp-nixos](https://github.com/utensils/mcp-nixos)
-
+- [nvf](https://github.com/notashelf/nvf)
