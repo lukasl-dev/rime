@@ -175,4 +175,3 @@ Add to `settings.json`:
 - [nixhub](https://nixhub.io/)
 - [nvf](https://github.com/notashelf/nvf)
 - [mcp-nixos](https://github.com/utensils/mcp-nixos)
-- [nvf](https://github.com/notashelf/nvf)
