@@ -95,7 +95,7 @@ args = ["stdio"]
 <details>
 <summary><b>opencode</b></summary>
 
-Add to `~/.config/opencode/opencode.json`:
+Add to `~/.config/opencode/config.json`:
 
 ```json
 {
