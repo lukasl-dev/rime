@@ -1,18 +1,19 @@
 mod handler;
 mod home_manager;
-mod nvf;
 mod nixos;
+mod nvf;
 mod tools;
 
 use clap::{Parser, Subcommand};
 use handler::RimeServerHandler;
 use rust_mcp_sdk::error::SdkResult;
-use rust_mcp_sdk::mcp_server::{HyperServerOptions, ServerRuntime, hyper_server, server_runtime};
-use rust_mcp_sdk::schema::{
-    Implementation, InitializeResult, LATEST_PROTOCOL_VERSION, ServerCapabilities,
-    ServerCapabilitiesTools,
+use rust_mcp_sdk::mcp_server::{
+    HyperServerOptions, McpServerOptions, hyper_server, server_runtime,
 };
-use rust_mcp_sdk::{McpServer, StdioTransport, TransportOptions};
+use rust_mcp_sdk::schema::{
+    Implementation, InitializeResult, ServerCapabilities, ServerCapabilitiesTools,
+};
+use rust_mcp_sdk::{McpServer, StdioTransport, ToMcpServerHandler, TransportOptions};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -61,6 +62,9 @@ fn server_details() -> InitializeResult {
             name: "rime".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
             title: Some("rime".to_string()),
+            description: Some("Rime MCP server".to_string()),
+            icons: vec![],
+            website_url: Some("https://github.com/lukasl-dev/rime".to_string()),
         },
         capabilities: ServerCapabilities {
             tools: Some(ServerCapabilitiesTools { list_changed: None }),
@@ -79,7 +83,7 @@ Note: When creating inline Lua functions in nvf, use lib.generators.mkLuaInline.
 Most tools shell out to nix; ensure it is on PATH."
                 .to_string(),
         ),
-        protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
+        protocol_version: "2025-11-25".to_string(),
     }
 }
 
@@ -95,7 +99,13 @@ async fn main() -> SdkResult<()> {
 async fn run_stdio() -> SdkResult<()> {
     let transport = StdioTransport::new(TransportOptions::default())?;
     let handler = RimeServerHandler {};
-    let server: ServerRuntime = server_runtime::create_server(server_details(), transport, handler);
+    let server = server_runtime::create_server(McpServerOptions {
+        server_details: server_details(),
+        transport,
+        handler: handler.to_mcp_server_handler(),
+        task_store: None,
+        client_task_store: None,
+    });
     server.start().await
 }
 
@@ -103,7 +113,7 @@ async fn run_http(args: HttpArgs) -> SdkResult<()> {
     let handler = RimeServerHandler {};
     let server = hyper_server::create_server(
         server_details(),
-        handler,
+        handler.to_mcp_server_handler(),
         HyperServerOptions {
             host: args.host,
             port: args.port,

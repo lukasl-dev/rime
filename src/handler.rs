@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use rust_mcp_sdk::schema::{
-    CallToolRequest, CallToolResult, ListToolsRequest, ListToolsResult, RpcError,
+    CallToolRequestParams, CallToolResult, ListToolsResult, PaginatedRequestParams, RpcError,
     schema_utils::CallToolError,
 };
 use rust_mcp_sdk::{McpServer, mcp_server::ServerHandler};
@@ -13,8 +15,8 @@ pub struct RimeServerHandler;
 impl ServerHandler for RimeServerHandler {
     async fn handle_list_tools_request(
         &self,
-        _request: ListToolsRequest,
-        _runtime: &dyn McpServer,
+        _request: Option<PaginatedRequestParams>,
+        _runtime: Arc<dyn McpServer>,
     ) -> std::result::Result<ListToolsResult, RpcError> {
         Ok(ListToolsResult {
             meta: None,
@@ -25,11 +27,11 @@ impl ServerHandler for RimeServerHandler {
 
     async fn handle_call_tool_request(
         &self,
-        request: CallToolRequest,
-        _runtime: &dyn McpServer,
+        params: CallToolRequestParams,
+        _runtime: Arc<dyn McpServer>,
     ) -> std::result::Result<CallToolResult, CallToolError> {
         let tool_params: RimeTools =
-            RimeTools::try_from(request.params).map_err(CallToolError::new)?;
+            RimeTools::try_from(params).map_err(CallToolError::new)?;
 
         match tool_params {
             RimeTools::NixEvaluateTool(tool) => tool.call_tool(),
