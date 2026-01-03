@@ -32,6 +32,14 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 </details>
 
 <details>
+<summary><b>❄️ NixOS</b></summary>
+
+- `nixos_wiki_search`: Search the NixOS wiki.
+- `nixos_wiki_read`: Read a page from the NixOS wiki.
+- `nixos_channels`: List available NixOS channels with their status.
+</details>
+
+<details>
 <summary><b>🏠 Home Manager</b></summary>
 
 - `home_manager_options_search`: Search Home Manager options.
@@ -49,14 +57,6 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 <summary><b>📦 Nixhub</b></summary>
 
 - `nixhub_package_versions`: Get version history for a package via [nixhub](https://nixhub.io).
-</details>
-
-<details>
-<summary><b>❄️ NixOS</b></summary>
-
-- `nixos_wiki_search`: Search the NixOS wiki.
-- `nixos_wiki_read`: Read a page from the NixOS wiki.
-- `nixos_channels`: List available NixOS channels with their status.
 </details>
 
 <details>
