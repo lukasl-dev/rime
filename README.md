@@ -28,15 +28,7 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 - `nix_config_show`: Run `nix config show`.
 - `nix_manual_list`: List Markdown files in the Nix manual.
 - `nix_manual_read`: Read a Markdown file from the Nix manual.
-- `nixhub_package_versions`: Get version history for a package via [nixhub](https://nixhub.io).
-</details>
-
-<details>
-<summary><b>❄️ NixOS</b></summary>
-
-- `nixos_wiki_search`: Search the NixOS wiki.
-- `nixos_wiki_read`: Read a page from the NixOS wiki.
-- `nixos_channels`: List available NixOS channels with their status.
+- `nixpkgs_options_search`: Search for Nixpkgs options in nixpkgs for a specific ref.
 </details>
 
 <details>
@@ -48,9 +40,23 @@ A minimal [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server
 <details>
 <summary><b>🌑 nvf</b></summary>
 
-- `nvf_options_search`: Search [nvf](https://github.com/notashelf/nvf) options.
-- `nvf_manual_list`: List files in the nvf manual.
-- `nvf_manual_read`: Read a file from the nvf manual.
+- `nvf_options_search`: Search [nvf](https://github.com/notashelf/nvf) options for a specific ref.
+- `nvf_manual_list`: List files in the nvf manual for a specific ref.
+- `nvf_manual_read`: Read a file from the nvf manual for a specific ref.
+</details>
+
+<details>
+<summary><b>📦 Nixhub</b></summary>
+
+- `nixhub_package_versions`: Get version history for a package via [nixhub](https://nixhub.io).
+</details>
+
+<details>
+<summary><b>❄️ NixOS</b></summary>
+
+- `nixos_wiki_search`: Search the NixOS wiki.
+- `nixos_wiki_read`: Read a page from the NixOS wiki.
+- `nixos_channels`: List available NixOS channels with their status.
 </details>
 
 <details>

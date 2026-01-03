@@ -9,8 +9,8 @@ use rust_mcp_sdk::{
 };
 
 use crate::home_manager::search_home_manager_options;
+use crate::nixpkgs::search_nixpkgs_options;
 use crate::nvf::{list_nvf_manual, read_nvf_manual, search_nvf_options};
-use crate::nixos::search_nixos_options;
 
 const NIXOS_API_BASE: &str = "https://search.nixos.org/backend";
 const AUTH_BASIC_B64: &str = "Basic YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=";
@@ -806,17 +806,17 @@ tool_box!(
         NvfOptionsSearchTool,
         NvfManualListTool,
         NvfManualReadTool,
-        NixOSOptionsSearchTool,
+        NixpkgsOptionsSearchTool,
     ]
 );
 
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
 #[mcp_tool(
-    name = "nixos_options_search",
-    description = "Search for NixOS options in nixpkgs for a specific ref."
+    name = "nixpkgs_options_search",
+    description = "Search for Nixpkgs options in nixpkgs for a specific ref."
 )]
-pub struct NixOSOptionsSearchTool {
-    /// The query to search for in the NixOS options.
+pub struct NixpkgsOptionsSearchTool {
+    /// The query to search for in the Nixpkgs options.
     ///
     /// Examples: "boot.loader.grub", "services.xserver", etc.
     query: String,
@@ -832,14 +832,14 @@ fn default_nixpkgs_ref() -> String {
     "nixos-unstable".to_string()
 }
 
-impl NixOSOptionsSearchTool {
+impl NixpkgsOptionsSearchTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        let options = search_nixos_options(self.query.as_str(), self.ref_name.as_str())
+        let options = search_nixpkgs_options(self.query.as_str(), self.ref_name.as_str())
             .map_err(CallToolError::new)?;
 
         if options.is_empty() {
             let message = format!(
-                "no NixOS options found matching '{}' in nixpkgs ref '{}'",
+                "no nixpkgs options found matching '{}' in nixpkgs ref '{}'",
                 self.query.trim(),
                 self.ref_name
             );
@@ -850,7 +850,7 @@ impl NixOSOptionsSearchTool {
 
         let mut lines = Vec::new();
         lines.push(format!(
-            "found {} NixOS options matching '{}' in nixpkgs ref '{}':",
+            "found {} nixpkgs options matching '{}' in nixpkgs ref '{}':",
             options.len(),
             self.query.trim(),
             self.ref_name
@@ -883,11 +883,17 @@ impl NixOSOptionsSearchTool {
     description = "List Markdown files in the nvf manual source directory."
 )]
 #[derive(Debug, ::serde::Deserialize, ::serde::Serialize, JsonSchema)]
-pub struct NvfManualListTool {}
+pub struct NvfManualListTool {
+    /// The nvf ref to search in.
+    ///
+    /// Examples: "main", "v0.1.0", or a commit hash.
+    #[serde(default = "default_nvf_ref")]
+    ref_name: String,
+}
 
 impl NvfManualListTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        let md_files = list_nvf_manual().map_err(CallToolError::new)?;
+        let md_files = list_nvf_manual(self.ref_name.as_str()).map_err(CallToolError::new)?;
         let pretty = serde_json::to_string_pretty(&md_files).map_err(CallToolError::new)?;
         Ok(CallToolResult::text_content(vec![TextContent::from(
             pretty,
@@ -905,11 +911,18 @@ pub struct NvfManualReadTool {
     ///
     /// Examples: "configuring/languages/lsp", "installation/standalone/nixos", etc.
     path: String,
+
+    /// The nvf ref to search in.
+    ///
+    /// Examples: "main", "v0.1.0", or a commit hash.
+    #[serde(default = "default_nvf_ref")]
+    ref_name: String,
 }
 
 impl NvfManualReadTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        let content = read_nvf_manual(&self.path).map_err(CallToolError::new)?;
+        let content =
+            read_nvf_manual(&self.path, self.ref_name.as_str()).map_err(CallToolError::new)?;
         Ok(CallToolResult::text_content(vec![TextContent::from(
             content,
         )]))
@@ -926,14 +939,29 @@ pub struct NvfOptionsSearchTool {
     ///
     /// Examples: "vim.languages.nix", "vim.theme", etc.
     query: String,
+
+    /// The nvf ref to search in.
+    ///
+    /// Examples: "main", "v0.1.0", or a commit hash.
+    #[serde(default = "default_nvf_ref")]
+    ref_name: String,
+}
+
+fn default_nvf_ref() -> String {
+    "main".to_string()
 }
 
 impl NvfOptionsSearchTool {
     pub fn call_tool(&self) -> Result<CallToolResult, CallToolError> {
-        let options = search_nvf_options(self.query.as_str()).map_err(CallToolError::new)?;
+        let options = search_nvf_options(self.query.as_str(), self.ref_name.as_str())
+            .map_err(CallToolError::new)?;
 
         if options.is_empty() {
-            let message = format!("no nvf options found matching '{}'", self.query.trim());
+            let message = format!(
+                "no nvf options found matching '{}' in nvf ref '{}'",
+                self.query.trim(),
+                self.ref_name
+            );
             return Ok(CallToolResult::text_content(vec![TextContent::from(
                 message,
             )]));
@@ -941,9 +969,10 @@ impl NvfOptionsSearchTool {
 
         let mut lines = Vec::new();
         lines.push(format!(
-            "found {} nvf options matching '{}':",
+            "found {} nvf options matching '{}' in nvf ref '{}':",
             options.len(),
-            self.query.trim()
+            self.query.trim(),
+            self.ref_name
         ));
         lines.push(String::new());
 

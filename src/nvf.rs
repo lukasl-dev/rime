@@ -11,11 +11,11 @@ pub(crate) struct NvfOption {
     pub(crate) default: String,
 }
 
-pub(crate) fn search_nvf_options(query: &str) -> Result<Vec<NvfOption>, Error> {
+pub(crate) fn search_nvf_options(query: &str, ref_name: &str) -> Result<Vec<NvfOption>, Error> {
     let expression = format!(
         r#"
 let
-  flake = builtins.getFlake "github:NotAShelf/nvf";
+  flake = builtins.getFlake "github:NotAShelf/nvf/{}";
   pkgs = import <nixpkgs> {{}};
   eval = flake.lib.neovimConfiguration {{ inherit pkgs; modules = []; }};
   optionsList = pkgs.lib.optionAttrSetToDocList eval.options;
@@ -29,7 +29,7 @@ in
     default = if opt ? default then (if builtins.isAttrs opt.default && opt.default ? text then opt.default.text else builtins.toJSON opt.default) else "";
   }}) (pkgs.lib.take 20 results)
 "#,
-        query
+        ref_name, query
     );
 
     let output = Command::new("nix")
@@ -61,9 +61,9 @@ in
     Ok(options)
 }
 
-pub(crate) fn list_nvf_manual() -> Result<Vec<String>, Error> {
-    let tree_url = "https://api.github.com/repos/NotAShelf/nvf/git/trees/main?recursive=1";
-    let tree_resp = ureq::get(tree_url)
+pub(crate) fn list_nvf_manual(ref_name: &str) -> Result<Vec<String>, Error> {
+    let tree_url = format!("https://api.github.com/repos/NotAShelf/nvf/git/trees/{}?recursive=1", ref_name);
+    let tree_resp = ureq::get(&tree_url)
         .set(
             "User-Agent",
             "rime/1.0 (+https://github.com/lukasl-dev/rime)",
@@ -101,9 +101,10 @@ pub(crate) fn list_nvf_manual() -> Result<Vec<String>, Error> {
     Ok(md_files)
 }
 
-pub(crate) fn read_nvf_manual(path: &str) -> Result<String, Error> {
+pub(crate) fn read_nvf_manual(path: &str, ref_name: &str) -> Result<String, Error> {
     let url = format!(
-        "https://raw.githubusercontent.com/NotAShelf/nvf/main/docs/manual/{}.md",
+        "https://raw.githubusercontent.com/NotAShelf/nvf/{}/docs/manual/{}.md",
+        ref_name,
         path
     );
 

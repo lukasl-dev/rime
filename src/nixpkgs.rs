@@ -3,7 +3,7 @@ use std::io::Error;
 use std::process::Command;
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct NixosOption {
+pub(crate) struct NixpkgsOption {
     pub(crate) name: String,
     pub(crate) description: String,
     #[serde(rename = "type")]
@@ -11,7 +11,7 @@ pub(crate) struct NixosOption {
     pub(crate) default: String,
 }
 
-pub(crate) fn search_nixos_options(query: &str, ref_name: &str) -> Result<Vec<NixosOption>, Error> {
+pub(crate) fn search_nixpkgs_options(query: &str, ref_name: &str) -> Result<Vec<NixpkgsOption>, Error> {
     let expression = format!(
         r#"
 let
@@ -50,7 +50,7 @@ in
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
         return Err(Error::other(format!(
-            "nix eval for nixos options failed: {}",
+            "nix eval for nixpkgs options failed: {}",
             stderr
         )));
     }
@@ -58,7 +58,7 @@ in
     let stdout = String::from_utf8(output.stdout)
         .map_err(|e| Error::other(format!("failed to read nix output: {}", e)))?;
 
-    let options: Vec<NixosOption> = serde_json::from_str(&stdout)
+    let options: Vec<NixpkgsOption> = serde_json::from_str(&stdout)
         .map_err(|e| Error::other(format!("failed to parse nix output: {}", e)))?;
 
     Ok(options)
